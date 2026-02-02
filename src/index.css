@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #a855f7; /* Neon Purple */
+  --color-primary-focus: #9333ea;
+  --color-primary-content: #ffffff;
+  --color-base-100: #1a1c2e; /* Card Background */
+  --color-base-200: #131524;
+  --color-base-300: #0f111a; /* Main Background */
+  --color-base-content: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0f111a] text-[#e2e8f0] antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+.glass-card {
+  @apply bg-[#1a1c2e] border border-white/5 shadow-2xl;
+}
+
+.cyber-input {
+  @apply bg-[#0f111a] border border-white/10 rounded-lg h-12 px-4 font-medium focus:border-primary/50 outline-none transition-all w-full;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
