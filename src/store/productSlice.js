@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { PRODUCT_ACTIONS } from './ActionType';
 
 const initialState = {
   products: [
@@ -99,7 +100,7 @@ const productSlice = createSlice({
   name: 'products',
   initialState,
   reducers: {
-    addProduct: (state, action) => {
+    [PRODUCT_ACTIONS.ADD_PRODUCT]: (state, action) => {
       const maxId = state.products.length > 0 
         ? Math.max(...state.products.map(p => p.id)) 
         : 0;
@@ -107,9 +108,53 @@ const productSlice = createSlice({
         id: maxId + 1,
         ...action.payload
       });
+    },
+    [PRODUCT_ACTIONS.REDUCE_QUANTITY]: (state, action) => {
+      const { id, amount = 1 } = action.payload;
+      const product = state.products.find(p => p.id === id);
+      if (product && product.quantity >= amount && product.quantity > 0) {
+        product.quantity -= amount;
+      }
+    },
+    [PRODUCT_ACTIONS.RESTORE_QUANTITY]: (state, action) => {
+      const { id, amount = 1 } = action.payload;
+      const product = state.products.find(p => p.id === id);
+      if (product) {
+        product.quantity += amount;
+      }
+    },
+    [PRODUCT_ACTIONS.SET_PRODUCTS]: (state, action) => {
+      state.products = action.payload;
+    },
+    [PRODUCT_ACTIONS.UPDATE_PRODUCT]: (state, action) => {
+      const index = state.products.findIndex(p => p.id === action.payload.id);
+      if (index !== -1) {
+        state.products[index] = action.payload;
+      }
+    },
+    [PRODUCT_ACTIONS.DELETE_PRODUCT]: (state, action) => {
+      state.products = state.products.filter(p => p.id !== action.payload);
+    },
+    [PRODUCT_ACTIONS.SET_LOADING]: (state, action) => {
+      state.loading = action.payload;
+    },
+    [PRODUCT_ACTIONS.SET_ERROR]: (state, action) => {
+      state.error = action.payload;
     }
   }
 });
 
-export const { addProduct } = productSlice.actions;
+export const { 
+  [PRODUCT_ACTIONS.ADD_PRODUCT]: addProduct,
+  [PRODUCT_ACTIONS.REDUCE_QUANTITY]: reduceQuantity,
+  [PRODUCT_ACTIONS.RESTORE_QUANTITY]: restoreQuantity,
+  [PRODUCT_ACTIONS.SET_PRODUCTS]: setProducts,
+  [PRODUCT_ACTIONS.UPDATE_PRODUCT]: updateProduct,
+  [PRODUCT_ACTIONS.DELETE_PRODUCT]: deleteProduct,
+  [PRODUCT_ACTIONS.SET_LOADING]: setLoading,
+  [PRODUCT_ACTIONS.SET_ERROR]: setError
+} = productSlice.actions;
+// Export action types for external use
+export const PRODUCT_ACTION_TYPES = PRODUCT_ACTIONS;
+
 export default productSlice.reducer;

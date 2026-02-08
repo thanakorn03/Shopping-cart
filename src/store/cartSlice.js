@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { CART_ACTIONS } from './ActionType';
 
 const initialState = {
   items: [],
@@ -10,25 +11,33 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addToCart: (state, action) => {
+    [CART_ACTIONS.ADD_TO_CART]: (state, action) => {
       const newItem = action.payload;
       const existingItem = state.items.find(item => item.id === newItem.id);
       
-      if (!existingItem) {
-        state.items.push({
-          ...newItem,
-          quantity: 1,
-          totalPrice: newItem.price
-        });
-      } else {
-        existingItem.quantity++;
-        existingItem.totalPrice += newItem.price;
+      // Only add if product has stock available
+      if (newItem.quantity > 0) {
+        if (!existingItem) {
+          state.items.push({
+            ...newItem,
+            quantity: 1,
+            totalPrice: newItem.price,
+            originalQuantity: newItem.quantity
+          });
+          state.totalQuantity++;
+          state.totalAmount += newItem.price;
+        } else {
+          // Check if adding another unit would exceed available stock
+          if (existingItem.quantity < existingItem.originalQuantity) {
+            existingItem.quantity++;
+            existingItem.totalPrice += newItem.price;
+            state.totalQuantity++;
+            state.totalAmount += newItem.price;
+          }
+        }
       }
-      
-      state.totalQuantity++;
-      state.totalAmount += newItem.price;
     },
-    removeFromCart: (state, action) => {
+    [CART_ACTIONS.REMOVE_FROM_CART]: (state, action) => {
       const id = action.payload;
       const existingItem = state.items.find(item => item.id === id);
       
@@ -38,7 +47,7 @@ const cartSlice = createSlice({
         state.items = state.items.filter(item => item.id !== id);
       }
     },
-    updateQuantity: (state, action) => {
+    [CART_ACTIONS.UPDATE_QUANTITY]: (state, action) => {
       const { id, type } = action.payload; // type: 'increment' or 'decrement'
       const existingItem = state.items.find(item => item.id === id);
       
@@ -55,9 +64,36 @@ const cartSlice = createSlice({
           state.totalAmount -= existingItem.price;
         }
       }
+    },
+    [CART_ACTIONS.CLEAR_CART]: (state) => {
+      state.items = [];
+      state.totalAmount = 0;
+      state.totalQuantity = 0;
+    },
+    [CART_ACTIONS.PROCESS_ORDER]: (state) => {
+      // Clear cart after successful payment
+      state.items = [];
+      state.totalAmount = 0;
+      state.totalQuantity = 0;
+    },
+    [CART_ACTIONS.SET_CART_ITEMS]: (state, action) => {
+      state.items = action.payload;
+      // Recalculate totals
+      state.totalQuantity = state.items.reduce((sum, item) => sum + item.quantity, 0);
+      state.totalAmount = state.items.reduce((sum, item) => sum + item.totalPrice, 0);
     }
   }
 });
 
-export const { addToCart, removeFromCart, updateQuantity } = cartSlice.actions;
+export const { 
+  [CART_ACTIONS.ADD_TO_CART]: addToCart,
+  [CART_ACTIONS.REMOVE_FROM_CART]: removeFromCart,
+  [CART_ACTIONS.UPDATE_QUANTITY]: updateQuantity,
+  [CART_ACTIONS.CLEAR_CART]: clearCart,
+  [CART_ACTIONS.PROCESS_ORDER]: processOrder,
+  [CART_ACTIONS.SET_CART_ITEMS]: setCartItems
+} = cartSlice.actions;
+// Export action types for external use
+export const CART_ACTION_TYPES = CART_ACTIONS;
+
 export default cartSlice.reducer;

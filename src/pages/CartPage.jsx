@@ -1,12 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { removeFromCart, updateQuantity } from '../store/cartSlice';
+import { reduceQuantity, restoreQuantity } from '../store/productSlice';
+import PaymentModal from '../components/PaymentModal';
 import { Trash2, Plus, Minus, ArrowLeft, ShoppingCart } from 'lucide-react';
 
 const CartPage = ({ onBackClick }) => {
   const cart = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const shipping = 4.99;
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
 
   return (
     <div className="container mx-auto px-6 py-12 animate-fade-in max-w-7xl">
@@ -64,15 +69,25 @@ const CartPage = ({ onBackClick }) => {
                   <div className="flex items-center gap-8">
                     <div className="flex items-center gap-5 bg-[#0f111a] rounded-lg p-2 border border-white/5">
                       <button 
-                        className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 transition-colors text-primary"
-                        onClick={() => dispatch(updateQuantity({ id: item.id, type: 'decrement' }))}
+                        className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 transition-colors text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          if (item.quantity > 1) {
+                            dispatch(restoreQuantity({ id: item.id, amount: 1 }));
+                            dispatch(updateQuantity({ id: item.id, type: 'decrement' }));
+                          }
+                        }}
+                        disabled={item.quantity <= 1}
                       >
                         <Minus size={16} strokeWidth={3} />
                       </button>
                       <span className="w-6 text-center font-black text-xl text-white">{item.quantity}</span>
                       <button 
-                        className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 transition-colors text-primary"
-                        onClick={() => dispatch(updateQuantity({ id: item.id, type: 'increment' }))}
+                        className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white/5 transition-colors text-primary disabled:opacity-30 disabled:cursor-not-allowed"
+                        onClick={() => {
+                          dispatch(reduceQuantity({ id: item.id, amount: 1 }));
+                          dispatch(updateQuantity({ id: item.id, type: 'increment' }));
+                        }}
+                        disabled={item.quantity >= item.originalQuantity}
                       >
                         <Plus size={16} strokeWidth={3} />
                       </button>
@@ -80,7 +95,10 @@ const CartPage = ({ onBackClick }) => {
                     
                     <button 
                       className="p-3 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                      onClick={() => dispatch(removeFromCart(item.id))}
+                      onClick={() => {
+                        dispatch(restoreQuantity({ id: item.id, amount: item.quantity }));
+                        dispatch(removeFromCart(item.id));
+                      }}
                     >
                       <Trash2 size={22} />
                     </button>
@@ -119,10 +137,23 @@ const CartPage = ({ onBackClick }) => {
               </div>
               
               <button 
+                onClick={() => setIsPaymentModalOpen(true)}
                 className={`btn btn-primary w-full h-16 mt-6 rounded-lg font-black tracking-[0.3em] text-sm border-none shadow-2xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all ${cart.items.length === 0 ? 'opacity-20 cursor-not-allowed' : ''}`}
+                disabled={cart.items.length === 0}
               >
-                EXECUTE ORDER
+                Pay ORDER
               </button>
+              
+              {paymentSuccess && (
+                <div className="mt-4 p-4 bg-success/10 border border-success/20 rounded-lg text-center">
+                  <p className="text-success font-black text-sm uppercase tracking-widest mb-2">
+                    Payment Successful!
+                  </p>
+                  <p className="text-xs opacity-70">
+                    Paid via {selectedPaymentMethod}
+                  </p>
+                </div>
+              )}
               
               <div className="flex items-center justify-center gap-3 pt-4 opacity-20">
                 <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
@@ -132,6 +163,17 @@ const CartPage = ({ onBackClick }) => {
           </div>
         </div>
       </div>
+      
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        totalAmount={cart.items.length > 0 ? cart.totalAmount + shipping : 0}
+        onPaymentSuccess={(method) => {
+          setPaymentSuccess(true);
+          setSelectedPaymentMethod(method);
+          setTimeout(() => setPaymentSuccess(false), 5000);
+        }}
+      />
     </div>
   );
 };

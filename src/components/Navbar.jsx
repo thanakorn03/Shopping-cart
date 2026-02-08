@@ -1,16 +1,13 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 import { useSelector } from 'react-redux';
 import { ShoppingCart, PackagePlus, LayoutGrid, Search, User } from 'lucide-react';
 
 const Navbar = ({ onCartClick, onHomeClick, onAddProductClick }) => {
   const totalQuantity = useSelector((state) => state.cart.totalQuantity);
-  const handlePageChange = (page) => {
-    dispatch({ type: 'SET_PAGE', payload: page });
-  };
 
   return (
-    <nav className="navbar bg-[#1a1c2e] sticky top-0 z-50 border-b border-white/5 px-6 md:px-12 h-20 transition-all flex justify-between">
+    <>
+      <nav className="navbar bg-[#1a1c2e] sticky top-0 z-50 border-b border-white/5 px-6 md:px-12 h-20 transition-all flex justify-between">
       {/* Far Left: Logo Section */}
       <div className="flex-none">
         <button 
@@ -29,7 +26,12 @@ const Navbar = ({ onCartClick, onHomeClick, onAddProductClick }) => {
         {/* Navigation Group */}
         <div className="hidden md:flex items-center gap-6 text-[11px] uppercase font-bold tracking-[0.2em]">
           <button onClick={onHomeClick} className="hover:text-primary transition-colors">Home</button>
-          <button onClick={onAddProductClick} className="hover:text-primary transition-colors">Inventory</button>
+          <button 
+            onClick={onAddProductClick} 
+            className="hover:text-primary transition-colors"
+          >
+            Inventory
+          </button>
         </div>
 
         {/* Sleek Search Bar */}
@@ -71,7 +73,8 @@ const Navbar = ({ onCartClick, onHomeClick, onAddProductClick }) => {
           </button>
         </div>
       </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 

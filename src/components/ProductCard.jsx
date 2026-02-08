@@ -1,13 +1,16 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../store/cartSlice';
+import { reduceQuantity } from '../store/productSlice';
 
 const ProductCard = ({ product }) => {
   const dispatch = useDispatch();
 
   const handleAddToCart = () => {
-    dispatch(addToCart(product));
+    dispatch(addToCart({ ...product, originalQuantity: product.quantity }));
+    dispatch(reduceQuantity({ id: product.id, amount: 1 }));
   };
+  
 
   return (
     <div className="group glass-card rounded-lg overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-300">
@@ -44,10 +47,15 @@ const ProductCard = ({ product }) => {
         </div>
 
         <button 
-          className="btn btn-primary w-full h-10 rounded-lg shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all active:scale-95 text-white uppercase text-[10px] font-black tracking-widest border-none mt-2"
+          className={`btn w-full h-10 rounded-lg shadow-lg transition-all active:scale-95 text-white uppercase text-[10px] font-black tracking-widest border-none mt-2 ${
+            product.quantity > 0 
+              ? 'btn-primary shadow-primary/10 hover:shadow-primary/20' 
+              : 'btn-disabled opacity-50 cursor-not-allowed'
+          }`}
           onClick={handleAddToCart}
+          disabled={product.quantity <= 0}
         >
-          Buy Now
+          {product.quantity > 0 ? 'Buy Now' : 'Out of Stock'}
         </button>
       </div>
     </div>

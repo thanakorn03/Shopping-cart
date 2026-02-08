@@ -7,12 +7,24 @@ import AddProductPage from './pages/AddProductPage';
 function App() {
   const [view, setView] = useState('home'); // 'home', 'cart', 'addProduct'
 
+  const handleCartClick = () => {
+    setView('cart');
+  };
+
+  const handleAddProductClick = () => {
+    setView('addProduct');
+  };
+
+  const handleHomeClick = () => {
+    setView('home');
+  };
+
   return (
     <div className="min-h-screen bg-[#0f111a] text-[#e2e8f0]">
       <Navbar 
-        onCartClick={() => setView('cart')} 
-        onHomeClick={() => setView('home')} 
-        onAddProductClick={() => setView('addProduct')}
+        onCartClick={handleCartClick} 
+        onHomeClick={handleHomeClick} 
+        onAddProductClick={handleAddProductClick}
       />
       
       <main>
